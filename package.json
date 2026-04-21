@@ -1,0 +1,19 @@
+{
+  "name": "neo-med-contracts",
+  "version": "1.0.0",
+  "description": "Neo-Med Smart Contracts",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "chai": "^4.3.7",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.22.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
+    "dotenv": "^16.4.5"
+  }
+}

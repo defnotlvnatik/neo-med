@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Priya Krishnan | SecureEHR Blockchain Dashboard</title>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #334155;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      --color-green: #10b981;
+      --color-green-light: #d1fae5;
+      --color-blue: #3b82f6;
+      --color-blue-light: #dbeafe;
+      --color-amber: #f59e0b;
+      --color-amber-light: #fef3c7;
+      --color-red: #ef4444;
+      --color-red-light: #fee2e2;
+
+      --font-sans: system-ui, -apple-system, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    h1, h2, h3 { color: #0f172a; }
+    
+    .hash {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* HEADER */
+    .header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background-color: var(--color-blue);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .user-info h1 { font-size: 1.25rem; margin-bottom: 2px; }
+    .header-right { text-align: right; }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-green { background-color: var(--color-green-light); color: #065f46; }
+    .badge-blue { background-color: var(--color-blue-light); color: #1e40af; }
+    .badge-amber { background-color: var(--color-amber-light); color: #92400e; }
+    .badge-red { background-color: var(--color-red-light); color: #991b1b; }
+
+    /* LAYOUT */
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+    .metric-label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
+    .metric-value { font-size: 2rem; font-weight: bold; margin-top: 8px; }
+    .metric-amber { color: var(--color-amber); }
+    .metric-green { color: var(--color-green); }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-size: 1.125rem;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    /* TIMELINE */
+    .timeline { list-style: none; position: relative; margin-left: 8px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: var(--border-color);
+    }
+    .timeline-item {
+      position: relative;
+      padding-left: 32px;
+      margin-bottom: 20px;
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+    .timeline-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .timeline-title { font-weight: 600; color: #0f172a; }
+    .timeline-provider { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 4px; }
+
+    /* ACCESS CONTROL */
+    .access-list { display: flex; flex-direction: column; gap: 16px; }
+    .access-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    .access-info h4 { margin-bottom: 2px; }
+    .access-meta { font-size: 0.8rem; color: var(--text-muted); }
+    
+    .toggle {
+      width: 44px;
+      height: 24px;
+      background-color: #cbd5e1;
+      border-radius: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .toggle.active { background-color: var(--color-green); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .toggle.active::after { transform: translateX(20px); }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      text-align: center;
+      background-color: white;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background-color: #f1f5f9; }
+
+    /* VITALS */
+    .vital-item { margin-bottom: 16px; }
+    .vital-header { display: flex; justify-content: space-between; font-size: 0.875rem; font-weight: 500; margin-bottom: 6px; }
+    .progress-bg {
+      width: 100%;
+      height: 8px;
+      background-color: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar { height: 100%; border-radius: 4px; }
+
+    /* AUDIT LOG */
+    .audit-list { display: flex; flex-direction: column; gap: 12px; }
+    .audit-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .audit-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .audit-left h4 { font-size: 0.9rem; margin-bottom: 4px;}
+    .audit-meta { font-size: 0.75rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="avatar">PK</div>
+      <div class="user-info">
+        <h1>Priya Krishnan</h1>
+        <div class="hash">DID: did:ethr:0x4f8B...9e2A</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="hash" style="margin-bottom: 4px;">Block: 1,847,203</div>
+      <span class="badge badge-green">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        On-Chain Verified
+      </span>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- METRICS -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total Chain Records</div>
+        <div class="metric-value">42</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Active Providers</div>
+        <div class="metric-value">3</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Pending Requests</div>
+        <div class="metric-value metric-amber">1</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Health Score</div>
+        <div class="metric-value metric-green">94</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="content-grid">
+      
+      <!-- TIMELINE -->
+      <div class="card">
+        <h2 class="card-title">Medical Timeline</h2>
+        <ul class="timeline">
+          <li class="timeline-item">
+            <div class="timeline-dot" style="background-color: var(--color-green)"></div>
+            <div class="timeline-header">
+              <span class="timeline-title">Comprehensive Blood Test</span>
+              <span class="badge badge-green">Normal</span>
+            </div>
+            <div class="timeline-provider">CityPath Labs • Oct 12, 2023</div>
+            <div class="hash">Tx: 0x8d2f…a3c1</div>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-dot" style="background-color: var(--color-red)"></div>
+            <div class="timeline-header">
+              <span class="timeline-title">Cardiology Consult</span>
+              <span class="badge badge-red">Flagged</span>
+            </div>
+            <div class="timeline-provider">Dr. Sarah Jenkins • Sep 28, 2023</div>
+            <div class="hash">Tx: 0x4b1e…9f0a</div>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-dot" style="background-color: var(--color-amber)"></div>
+            <div class="timeline-header">
+              <span class="timeline-title">Statin Prescription</span>
+              <span class="badge badge-amber">Renewal Due</span>
+            </div>
+            <div class="timeline-provider">CityMed Pharmacy • Sep 28, 2023</div>
+            <div class="hash">Tx: 0x1c7a…2b4d</div>
+          </li>
+          <li class="timeline-item">
+            <div class="timeline-dot" style="background-color: var(--color-blue)"></div>
+            <div class="timeline-header">
+              <span class="timeline-title">Annual Physical (ER)</span>
+              <span class="badge badge-blue">Follow-up</span>
+            </div>
+            <div class="timeline-provider">General Hospital • Jan 14, 2023</div>
+            <div class="hash">Tx: 0x9f3d…e1b2</div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ACCESS CONTROL -->
+      <div class="card">
+        <h2 class="card-title">Provider Access Control</h2>
+        <div class="access-list">
+          
+          <div class="access-item">
+            <div class="access-info">
+              <h4>Dr. Sarah Jenkins</h4>
+              <div class="access-meta">Scope: Full Medical History<br>Expiry: Oct 2024</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          
+          <div class="access-item">
+            <div class="access-info">
+              <h4>CityPath Labs</h4>
+              <div class="access-meta">Scope: Lab Results Only<br>Expiry: Dec 2023</div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+          <div class="access-item" style="background-color: var(--color-amber-light); border-color: #fcd34d;">
+            <div class="access-info">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h4>Aetna Insurance</h4>
+                <span class="badge badge-amber">Review</span>
+              </div>
+              <div class="access-meta">Scope: Billing & Diagnoses<br>Requested: Today</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('active'); this.parentElement.style.backgroundColor='#fff'; this.parentElement.style.borderColor='var(--border-color)';"></div>
+          </div>
+          
+          <div class="access-item">
+            <div class="access-info">
+              <h4>General Hospital (ER)</h4>
+              <div class="access-meta">Scope: Emergency Protocols<br>Expired: Feb 2023</div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('active')"></div>
+          </div>
+
+        </div>
+        <button class="btn">Manage Permissions Lifecycle</button>
+      </div>
+
+      <!-- VITALS -->
+      <div class="card">
+        <h2 class="card-title">Vitals Snapshot</h2>
+        
+        <div class="vital-item">
+          <div class="vital-header">
+            <span>Blood Pressure</span>
+            <span>118/76 mmHg</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-bar" style="width: 45%; background-color: var(--color-green)"></div>
+          </div>
+        </div>
+
+        <div class="vital-item">
+          <div class="vital-header">
+            <span>Blood Glucose (Fasting)</span>
+            <span>108 mg/dL</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-bar" style="width: 70%; background-color: var(--color-amber)"></div>
+          </div>
+        </div>
+
+        <div class="vital-item">
+          <div class="vital-header">
+            <span>BMI</span>
+            <span>23.4</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-bar" style="width: 50%; background-color: var(--color-green)"></div>
+          </div>
+        </div>
+
+        <div class="vital-item">
+          <div class="vital-header">
+            <span>HbA1c</span>
+            <span>6.7%</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-bar" style="width: 85%; background-color: var(--color-red)"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div class="card">
+        <h2 class="card-title">Blockchain Audit Log</h2>
+        <div class="audit-list">
+          
+          <div class="audit-item">
+            <div class="audit-left">
+              <h4>Insurance Request Pending</h4>
+              <div class="audit-meta">
+                <span class="hash">Block: 1,847,192</span> • Oct 15, 2023 09:41 AM
+              </div>
+            </div>
+            <span class="badge badge-amber">Awaiting Sign</span>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-left">
+              <h4>Lab Record Written</h4>
+              <div class="audit-meta">
+                <span class="hash">Block: 1,820,441</span> • Oct 12, 2023 11:30 AM
+              </div>
+            </div>
+            <span class="badge badge-green">Immutable</span>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-left">
+              <h4>Prescription Written</h4>
+              <div class="audit-meta">
+                <span class="hash">Block: 1,795,200</span> • Sep 28, 2023 02:15 PM
+              </div>
+            </div>
+            <span class="badge badge-green">Immutable</span>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-left">
+              <h4>Access Granted (Dr. Sarah)</h4>
+              <div class="audit-meta">
+                <span class="hash">Block: 1,795,010</span> • Sep 28, 2023 01:00 PM
+              </div>
+            </div>
+            <span class="badge badge-blue">Consent Log</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>
